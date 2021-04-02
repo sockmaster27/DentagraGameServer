@@ -6,3 +6,5 @@ export_presets.cfg
 
 # Mono-specific ignores
 .mono/
+
+TLS/game_server_key.key
