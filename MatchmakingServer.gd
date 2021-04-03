@@ -1,8 +1,15 @@
 extends Node
 
 
+signal new_pair(token1, token2, timestamp)
+signal failure(message)
+
+
 export var matchmaking_url := "wss://localhost:2094"
 var socket_client := WebSocketClient.new()
+
+const token_length := 64
+
 
 
 func _ready() -> void:
@@ -15,6 +22,14 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	socket_client.poll()
+
+
+
+func bytes_to_int(bytes: PoolByteArray) -> int:
+	var sp_buffer := StreamPeerBuffer.new()
+	sp_buffer.set_data_array(bytes)
+	return sp_buffer.get_64()
+
 
 
 func enable_tls(verify_with_ca: bool) -> void:
@@ -32,9 +47,22 @@ func establish_connection() -> void:
 func connected(_protocol: String) -> void:
 	print("Connected to matchmaking server.")
 
+
 func receive_package() -> void:
-	var package := socket_client.get_peer(1).get_packet()
-	print(package.hex_encode())
+	var packet := socket_client.get_peer(1).get_packet()
+	
+	if packet.size() != token_length * 2 + 4:
+		emit_signal("failure", "Received packet is of the wrong size: %s" % packet.size())
+		print("fuck")
+	else:
+		var token1 := packet.subarray(0, token_length - 1)
+		var token2 := packet.subarray(token_length, token_length * 2 - 1)
+		var timestamp := bytes_to_int(packet.subarray(token_length * 2, -1))
+		
+		emit_signal("new_pair", token1, token2, timestamp)
+		print("token1: %s" % token1.hex_encode())
+		print("token2: %s" % token2.hex_encode())
+		print("timestamp: %s" % timestamp)
 
 
 
