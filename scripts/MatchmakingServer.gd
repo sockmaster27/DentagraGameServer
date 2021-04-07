@@ -5,7 +5,9 @@ signal new_pair(token1, token2, timestamp)
 signal failure(message)
 
 
-export var matchmaking_url := "wss://localhost:2094"
+export var matchmaking_address := "212.10.99.83"
+export var matchmaking_port := 2094
+var matchmaking_url := "wss://%s:%s" % [matchmaking_address, matchmaking_port]
 var socket_client := WebSocketClient.new()
 
 
@@ -50,17 +52,12 @@ func receive_packet() -> void:
 		var token1_bytes := packet.subarray(0, Global.token_length - 1)
 		token1_bytes.append_array(timestamp_bytes)
 		var token1 := token1_bytes
-#		var token1 := token1_bytes.hex_encode()
 		
 		var token2_bytes :=  packet.subarray(Global.token_length, Global.token_length * 2 - 1)
 		token2_bytes.append_array(timestamp_bytes)
 		var token2 := token2_bytes
-#		var token2 := token2_bytes.hex_encode()
 		
 		emit_signal("new_pair", token1, token2)
-#		print("token1: %s" % token1)
-#		print("token2: %s" % token2)
-#		print("timestamp: %s" % timestamp)
 
 
 
