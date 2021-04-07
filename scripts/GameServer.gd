@@ -33,7 +33,7 @@ func open_server() -> void:
 
 func new_pair(token1: PoolByteArray, token2: PoolByteArray) -> void:
 	var room_node := Room.new(server)
-	var room_name := String(room_node.get_instance_id()).sha256_text()
+	var room_name := String(room_node.get_instance_id()).sha1_text()
 	room_node.set_name(room_name)
 	add_child(room_node)
 	rooms[room_name] = room_node
@@ -68,7 +68,7 @@ func connect_client(id: int) -> void:
 func send_to_room(id: int, token: PoolByteArray) -> void:
 	var room_name = tokens[token]
 	tokens.erase(token)
-	rooms[room_name].clients.append(id)
+	rooms[room_name].add_client(id)
 	rpc_id(id, "join_room", room_name)
 
 
