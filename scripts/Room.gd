@@ -10,10 +10,6 @@ var server: NetworkedMultiplayerENet
 func _init(server_peer: NetworkedMultiplayerENet) -> void:
 	server = server_peer
 
-func rpc_both(method: String) -> void:
-	for id in clients:
-		rpc_id(id, method)
-
 func add_client(id: int) -> void:
 	not_ready.append(id)
 
@@ -34,7 +30,7 @@ remote func client_ready() -> void:
 		clients.append(id)
 		
 		if clients.size() == 2:
-			rpc_both("start")
+			rpc("start")
 	else:
 		server.disconnect_peer(id, true)
 
