@@ -43,8 +43,9 @@ func new_pair(token1: PoolByteArray, token2: PoolByteArray) -> void:
 	
 	for token in [token1, token2]:
 		if awaiting_token_from_matchmaker.has(token):
-			var id = awaiting_token_from_matchmaker[token]
-			send_to_room(id, token)
+			var id = awaiting_token_from_matchmaker[token][0]
+			var display_name = awaiting_token_from_matchmaker[token][1]
+			send_to_room(id, display_name, token)
 			awaiting_token_from_matchmaker.erase(token)
 	
 	yield(get_tree().create_timer(token_timeout), "timeout")
@@ -65,14 +66,14 @@ func connect_client(id: int) -> void:
 		awaiting_token_from_client.erase(id)
 
 
-func send_to_room(id: int, token: PoolByteArray) -> void:
+func send_to_room(id: int, display_name: String, token: PoolByteArray) -> void:
 	var room_name = tokens[token]
 	tokens.erase(token)
-	rooms[room_name].add_client(id)
+	rooms[room_name].add_client(id, display_name)
 	rpc_id(id, "join_room", room_name)
 
 
-remote func receive_token(token: PoolByteArray) -> void:
+remote func register_player(display_name: String, token: PoolByteArray) -> void:
 	var id := get_tree().get_rpc_sender_id()
 	awaiting_token_from_client.erase(id)
 	
@@ -86,9 +87,9 @@ remote func receive_token(token: PoolByteArray) -> void:
 	if from_future or expired:
 		server.disconnect_peer(id, true)
 	elif exists:
-		send_to_room(id, token)
+		send_to_room(id, display_name, token)
 	else:
-		awaiting_token_from_matchmaker[token] = id
+		awaiting_token_from_matchmaker[token] = [id, display_name]
 		yield(get_tree().create_timer(token_timeout), "timeout")
 		if awaiting_token_from_matchmaker.has(token):
 			server.disconnect_peer(id)
