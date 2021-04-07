@@ -10,9 +10,16 @@ var server: NetworkedMultiplayerENet
 func _init(server_peer: NetworkedMultiplayerENet) -> void:
 	server = server_peer
 
+# For at rpc'en kun bliver sendt til medlemmerne af rummet, og ikke hele serveren
 func rpc_both(method: String) -> void:
 	for id in clients:
 		rpc_id(id, method)
+
+func rpc_other(method: String) -> void:
+	var this_id := get_tree().get_rpc_sender_id()
+	for id in clients:
+		if id != this_id:
+			rpc_id(id, method) 
 
 func add_client(id: int) -> void:
 	not_ready.append(id)
@@ -41,4 +48,4 @@ remote func client_ready() -> void:
 
 remote func server_bruh() -> void:
 	if validate_id():
-		rpc("bruh")
+		rpc_other("bruh")
