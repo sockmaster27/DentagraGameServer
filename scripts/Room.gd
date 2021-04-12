@@ -13,7 +13,7 @@ func _init(server_peer: NetworkedMultiplayerENet) -> void:
 	server = server_peer
 
 # denne method bliver brugt i stedet for _process for at kontrollere hyppigheden
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	pass
 
 
@@ -42,25 +42,6 @@ func validate_id() -> bool:
 		return false
 
 
-func start() -> void:
-	var player1 := {}
-	var player2 := {}
-	
-	player1.id = clients[0]
-	player2.id = clients[1]
-	
-	player1.name = names[player1.id]
-	player2.name = names[player2.id]
-	
-	player1.cam_flipped = false
-	player2.cam_flipped = true
-	
-	player1.pos = Vector2(100, 0)
-	player2.pos = Vector2(400, 0)
-	
-	rpc_both("start", [player1, player2])
-
-
 
 remote func client_ready() -> void:
 	var id := get_tree().get_rpc_sender_id()
@@ -74,6 +55,30 @@ remote func client_ready() -> void:
 		server.disconnect_peer(id, true)
 
 
-remote func server_bruh() -> void:
+func start() -> void:
+	var player1 := {}
+	var player2 := {}
+	
+	player1.id = clients[0]
+	player2.id = clients[1]
+	
+	player1.name = names[player1.id]
+	player2.name = names[player2.id]
+	
+	player1.cam_flipped = false
+	player2.cam_flipped = true
+	
+	player1.pos = Vector2(-200, 0)
+	player2.pos = Vector2(200, 0)
+	
+	rpc_both("start", [player1, player2])
+
+
+
+remote func update_position(position: Vector2) -> void:
 	if validate_id():
-		rpc_other("bruh")
+		rpc_other("receive_position", [position])
+
+remote func update_rotation(rotation: float) -> void:
+	if validate_id():
+		rpc_other("receive_rotation", [rotation])
