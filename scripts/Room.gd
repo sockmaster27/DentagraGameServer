@@ -75,10 +75,6 @@ func start() -> void:
 
 
 
-remote func update_position(position: Vector2) -> void:
+remote func update_transform(position: Vector2, rotation: float) -> void:
 	if validate_id():
-		rpc_other("receive_position", [position])
-
-remote func update_rotation(rotation: float) -> void:
-	if validate_id():
-		rpc_other("receive_rotation", [rotation])
+		rpc_other("receive_transform", [position, rotation])
