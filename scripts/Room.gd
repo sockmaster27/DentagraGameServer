@@ -23,11 +23,11 @@ func rpc_both(method: String, args: Array = []) -> void:
 		# callv bruges for at kunne give indholdet af et array som enkelte argumenter
 		callv("rpc_id", [id, method] + args)
 
-func rpc_other(method: String, args: Array = []) -> void:
+func rpc_unreliable_other(method: String, args: Array = []) -> void:
 	var this_id := get_tree().get_rpc_sender_id()
 	for id in clients:
 		if id != this_id:
-			callv("rpc_id", [id, method] + args) 
+			callv("rpc_unreliable_id", [id, method] + args) 
 
 func add_client(id: int, display_name: String) -> void:
 	not_ready.append(id)
@@ -77,4 +77,4 @@ func start() -> void:
 
 remote func update_transform(position: Vector2, rotation: float) -> void:
 	if validate_id():
-		rpc_other("receive_transform", [position, rotation])
+		rpc_unreliable_other("receive_transform", [position, rotation])
