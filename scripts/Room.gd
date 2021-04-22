@@ -18,16 +18,18 @@ func _physics_process(_delta: float) -> void:
 
 
 # For at rpc'en kun bliver sendt til medlemmerne af rummet, og ikke hele serveren
-func rpc_both(method: String, args: Array = []) -> void:
+func rpc_both(method: String, args: Array = [], reliable: bool = true) -> void:
 	for id in clients:
+		var rpc_method := "rpc_id" if reliable else "rpc_unreliable_id"
 		# callv bruges for at kunne give indholdet af et array som enkelte argumenter
-		callv("rpc_id", [id, method] + args)
+		callv(rpc_method, [id, method] + args)
 
-func rpc_unreliable_other(method: String, args: Array = []) -> void:
+func rpc_other(method: String, args: Array = [], reliable: bool = true) -> void:
 	var this_id := get_tree().get_rpc_sender_id()
 	for id in clients:
 		if id != this_id:
-			callv("rpc_unreliable_id", [id, method] + args) 
+			var rpc_method := "rpc_id" if reliable else "rpc_unreliable_id"
+			callv(rpc_method, [id, method] + args) 
 
 func add_client(id: int, display_name: String) -> void:
 	not_ready.append(id)
@@ -77,4 +79,8 @@ func start() -> void:
 
 remote func update_transform(position: Vector2, rotation: float) -> void:
 	if validate_id():
-		rpc_unreliable_other("receive_transform", [position, rotation])
+		rpc_other("receive_transform", [position, rotation], false)
+
+remote func hit() -> void:
+	if validate_id():
+		rpc_other("receive_hit")
