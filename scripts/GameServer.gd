@@ -5,8 +5,6 @@ export var max_players :=  4095
 export var port := 2090
 export var token_timeout := 10
 
-var Room := preload("res://scripts/Room.gd")
-
 var server := NetworkedMultiplayerENet.new()
 
 var awaiting_token_from_client := []
@@ -28,6 +26,7 @@ func open_server() -> void:
 	get_tree().set_network_peer(server)
 	
 	server.connect("peer_connected", self, "connect_client")
+	server.connect("peer_disconnected", self, "disconnect_client")
 
 
 
@@ -64,6 +63,19 @@ func connect_client(id: int) -> void:
 	if awaiting_token_from_client.has(id):
 		server.disconnect_peer(id, true)
 		awaiting_token_from_client.erase(id)
+
+func disconnect_client(id: int) -> void:
+	if id in awaiting_token_from_client:
+		awaiting_token_from_client.erase(id)
+	elif id in awaiting_token_from_matchmaker:
+		awaiting_token_from_matchmaker.erase(id)
+	else:
+		for room_name in rooms.keys():
+			var room: Room = rooms.get(room_name) 
+			if id in room.not_ready or id in room.clients:
+				room.disconnect_client(id)
+				rooms.erase(room_name)
+				return
 
 
 func send_to_room(id: int, display_name: String, token: PoolByteArray) -> void:

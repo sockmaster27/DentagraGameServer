@@ -1,3 +1,4 @@
+class_name Room
 extends Node
 
 
@@ -29,7 +30,9 @@ func rpc_other(method: String, args: Array = [], reliable: bool = true) -> void:
 	for id in clients:
 		if id != this_id:
 			var rpc_method := "rpc_id" if reliable else "rpc_unreliable_id"
-			callv(rpc_method, [id, method] + args) 
+			callv(rpc_method, [id, method] + args)
+			return
+
 
 func add_client(id: int, display_name: String) -> void:
 	not_ready.append(id)
@@ -74,6 +77,17 @@ func start() -> void:
 	player2.pos = Vector2(200, 0)
 	
 	rpc_both("start", [player1, player2])
+
+
+func disconnect_client(id: int) -> void:
+	not_ready.erase(id)
+	clients.erase(id)
+	
+	for other_id in not_ready + clients:
+		rpc_id(other_id, "enemy_disconnected")
+		server.disconnect_peer(other_id)
+	
+	queue_free()
 
 
 
