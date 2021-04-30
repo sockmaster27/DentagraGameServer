@@ -1,6 +1,8 @@
 class_name Room
 extends Node
 
+enum Side {left, right}
+
 
 var not_ready := []
 var clients := []
@@ -70,8 +72,8 @@ func start() -> void:
 	player1.name = names[player1.id]
 	player2.name = names[player2.id]
 	
-	player1.cam_flipped = false
-	player2.cam_flipped = true
+	player1.side = Side.left
+	player2.side = Side.right
 	
 	player1.pos = Vector2(-200, 0)
 	player2.pos = Vector2(200, 0)
@@ -98,3 +100,12 @@ remote func update_transform(position: Vector2, rotation: float) -> void:
 remote func hit() -> void:
 	if validate_id():
 		rpc_other("receive_hit")
+
+
+remote func player_base_damaged(x: int, y: int, damage: int) -> void:
+	if validate_id():
+		rpc_other("receive_enemy_base_damaged", [x, y, damage])
+
+remote func enemy_base_damaged(x: int, y: int, damage: int) -> void:
+	if validate_id():
+		rpc_other("receive_player_base_damaged", [x, y, damage])
