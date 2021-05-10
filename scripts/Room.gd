@@ -8,6 +8,7 @@ var not_ready := []
 var clients := []
 
 var names := {}
+var bases := {}
 
 var server: NetworkedMultiplayerENet
 
@@ -15,23 +16,13 @@ var server: NetworkedMultiplayerENet
 func _init(server_peer: NetworkedMultiplayerENet) -> void:
 	server = server_peer
 
-# denne method bliver brugt i stedet for _process for at kontrollere hyppigheden
-func _physics_process(_delta: float) -> void:
-	pass
-
-
-# For at rpc'en kun bliver sendt til medlemmerne af rummet, og ikke hele serveren
-func rpc_both(method: String, args: Array = [], reliable: bool = true) -> void:
-	for id in clients:
-		var rpc_method := "rpc_id" if reliable else "rpc_unreliable_id"
-		# callv bruges for at kunne give indholdet af et array som enkelte argumenter
-		callv(rpc_method, [id, method] + args)
 
 func rpc_other(method: String, args: Array = [], reliable: bool = true) -> void:
 	var this_id := get_tree().get_rpc_sender_id()
 	for id in clients:
 		if id != this_id:
 			var rpc_method := "rpc_id" if reliable else "rpc_unreliable_id"
+			# callv bruges for at kunne give indholdet af et array som enkelte argumenter
 			callv(rpc_method, [id, method] + args)
 			return
 
@@ -50,12 +41,13 @@ func validate_id() -> bool:
 
 
 
-remote func client_ready() -> void:
+remote func client_ready(base: Array) -> void:
 	var id := get_tree().get_rpc_sender_id()
 	if not_ready.has(id):
 		not_ready.erase(id)
 		clients.append(id)
-		
+		bases[id] = base
+		print(base)
 		if clients.size() == 2:
 			start()
 	else:
@@ -63,22 +55,13 @@ remote func client_ready() -> void:
 
 
 func start() -> void:
-	var player1 := {}
-	var player2 := {}
+	var id1 = clients[0]
+	var id2 = clients[1]
+	print(bases)
+	rpc_id(id1, "start", Side.left, Vector2(-200, 0), Vector2(200, 0), names[id2], bases[id2])
+	rpc_id(id2, "start", Side.right, Vector2(200, 0), Vector2(-200, 0), names[id1], bases[id1])
 	
-	player1.id = clients[0]
-	player2.id = clients[1]
-	
-	player1.name = names[player1.id]
-	player2.name = names[player2.id]
-	
-	player1.side = Side.left
-	player2.side = Side.right
-	
-	player1.pos = Vector2(-200, 0)
-	player2.pos = Vector2(200, 0)
-	
-	rpc_both("start", [player1, player2])
+	bases.clear()
 
 
 func disconnect_client(id: int) -> void:
