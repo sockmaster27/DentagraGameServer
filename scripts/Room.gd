@@ -90,3 +90,8 @@ remote func player_base_damaged(x: int, y: int, damage: int) -> void:
 remote func enemy_base_damaged(x: int, y: int, damage: int) -> void:
 	if validate_id():
 		rpc_other("receive_player_base_damaged", [x, y, damage])
+
+
+remote func orb_collected() -> void:
+	if validate_id():
+		rpc_other("receive_orb_collected")
