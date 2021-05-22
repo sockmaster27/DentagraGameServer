@@ -47,7 +47,6 @@ remote func client_ready(base: Array) -> void:
 		not_ready.erase(id)
 		clients.append(id)
 		bases[id] = base
-		print(base)
 		if clients.size() == 2:
 			start()
 	else:
@@ -57,7 +56,6 @@ remote func client_ready(base: Array) -> void:
 func start() -> void:
 	var id1 = clients[0]
 	var id2 = clients[1]
-	print(bases)
 	rpc_id(id1, "start", Side.left, Vector2(-200, 0), Vector2(200, 0), names[id2], bases[id2])
 	rpc_id(id2, "start", Side.right, Vector2(200, 0), Vector2(-200, 0), names[id1], bases[id1])
 	
