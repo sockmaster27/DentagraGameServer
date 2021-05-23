@@ -36,6 +36,7 @@ func new_pair(token1: PoolByteArray, token2: PoolByteArray) -> void:
 	room_node.set_name(room_name)
 	add_child(room_node)
 	rooms[room_name] = room_node
+	room_node.connect("closed", self, "room_closed", [room_name])
 	
 	tokens[token1] = room_name
 	tokens[token2] = room_name
@@ -52,6 +53,7 @@ func new_pair(token1: PoolByteArray, token2: PoolByteArray) -> void:
 	if tokens.has(token1) or tokens.has(token2):
 		# .erase returnerer bare false hvis key'en ikke findes
 		tokens.erase(token1)
+		tokens.erase(token2)
 		tokens.erase(token2)
 		rooms.erase(room_name)
 
@@ -74,7 +76,6 @@ func disconnect_client(id: int) -> void:
 			var room: Room = rooms.get(room_name) 
 			if id in room.not_ready or id in room.clients:
 				room.disconnect_client(id)
-				rooms.erase(room_name)
 				return
 
 
@@ -106,3 +107,8 @@ remote func register_player(display_name: String, token: PoolByteArray) -> void:
 		if awaiting_token_from_matchmaker.has(token):
 			server.disconnect_peer(id)
 			awaiting_token_from_matchmaker.erase(token)
+
+
+func room_closed(room_name: String) -> void:
+	rooms[room_name].queue_free()
+	rooms.erase(room_name)

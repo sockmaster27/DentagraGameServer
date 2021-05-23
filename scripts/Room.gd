@@ -1,6 +1,9 @@
 class_name Room
 extends Node
 
+signal closed
+
+
 enum Side {left, right}
 
 
@@ -56,8 +59,26 @@ remote func client_ready(base: Array) -> void:
 func start() -> void:
 	var id1 = clients[0]
 	var id2 = clients[1]
-	rpc_id(id1, "start", Side.left, Vector2(-200, 0), Vector2(200, 0), names[id2], bases[id2])
-	rpc_id(id2, "start", Side.right, Vector2(200, 0), Vector2(-200, 0), names[id1], bases[id1])
+	rpc_id(
+		id1, 
+		"start", 
+		Side.left, 
+		Vector2(-200, 0), 
+		Vector2(200, 0), 
+		names[id2], 
+		names[id1], 
+		bases[id2]
+	)
+	rpc_id(
+		id2, 
+		"start", 
+		Side.right, 
+		Vector2(200, 0), 
+		Vector2(-200, 0), 
+		names[id1], 
+		names[id2],
+		bases[id1]
+	)
 	
 	bases.clear()
 
@@ -66,11 +87,10 @@ func disconnect_client(id: int) -> void:
 	not_ready.erase(id)
 	clients.erase(id)
 	
-	for other_id in not_ready + clients:
-		rpc_id(other_id, "enemy_disconnected")
-		server.disconnect_peer(other_id)
+	for id in not_ready + clients:
+		rpc_id(id, "enemy_disconnected")
 	
-	queue_free()
+	close_room()
 
 
 
@@ -95,3 +115,14 @@ remote func enemy_base_damaged(x: int, y: int, damage: int) -> void:
 remote func orb_collected() -> void:
 	if validate_id():
 		rpc_other("receive_orb_collected")
+
+remote func victory() -> void:
+	if validate_id():
+		rpc_other("receive_defeat")
+		yield(get_tree().create_timer(7), "timeout")
+		close_room()
+
+func close_room() -> void:
+	for id in clients + not_ready:
+		server.disconnect_peer(id)
+	emit_signal("closed")
