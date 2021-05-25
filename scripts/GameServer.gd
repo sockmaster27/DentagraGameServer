@@ -38,15 +38,14 @@ func new_pair(token1: PoolByteArray, token2: PoolByteArray) -> void:
 	rooms[room_name] = room_node
 	room_node.connect("closed", self, "room_closed", [room_name])
 	
-	tokens[token1] = room_name
-	tokens[token2] = room_name
-	
 	for token in [token1, token2]:
 		if awaiting_token_from_matchmaker.has(token):
 			var id = awaiting_token_from_matchmaker[token][0]
 			var display_name = awaiting_token_from_matchmaker[token][1]
 			send_to_room(id, display_name, token)
 			awaiting_token_from_matchmaker.erase(token)
+		else:
+			tokens[token] = room_name
 	
 	yield(get_tree().create_timer(token_timeout), "timeout")
 	
@@ -54,8 +53,7 @@ func new_pair(token1: PoolByteArray, token2: PoolByteArray) -> void:
 		# .erase returnerer bare false hvis key'en ikke findes
 		tokens.erase(token1)
 		tokens.erase(token2)
-		tokens.erase(token2)
-		rooms.erase(room_name)
+		room_node.close_room()
 
 
 
